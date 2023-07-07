@@ -1,0 +1,68 @@
+# примеры API-запросов
+
+#@baseUrl = http://127.0.0.1:5001
+@baseUrl = http://0.0.0.0:5001
+
+# создание пользователя
+POST {{baseUrl}}/users/
+Content-Type: application/json
+
+ {
+   "email": "test2ss.ce",
+   "password": "1234"
+ }
+
+###
+
+# поиск пользователя
+GET {{baseUrl}}/users/52
+
+###
+
+#login user
+POST {{baseUrl}}/login
+Content-Type: application/json
+
+ {
+   "email": "test8@ss.ce",
+   "password": "1234"
+ }
+
+###
+
+#logout user
+GET {{baseUrl}}/logout
+
+
+###
+
+# новое обьявление
+POST {{baseUrl}}/adv
+Content-Type: application/json
+
+{
+    "title": "test7",
+    "description": "description7"
+}
+
+###
+
+# получить обьявление
+GET {{baseUrl}}/adv/1
+
+###
+
+# изменение обьявления
+PATCH  {{baseUrl}}/adv/2
+Content-Type: application/json
+
+{
+   "title": "new new advertisement"
+ }
+
+###
+
+# удаление обьявления
+DELETE {{baseUrl}}/adv/2
+
+

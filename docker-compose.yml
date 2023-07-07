@@ -1,0 +1,82 @@
+version: "3.9"
+
+networks:
+  dev_network:
+
+volumes:
+  pgdata:
+
+services:
+  db:
+    image: postgres:15.1-alpine
+    container_name: flask_db
+    ports:
+      - "5431:5432"
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      POSTGRES_DB: ${PG_DB}
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}" ]
+      interval: 10s
+      timeout: 15s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./logs:/var/flask_log
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 1G
+    networks:
+      dev_network:
+        aliases:
+          - ${PG_HOST}
+
+  advertisements:
+    build:
+      context: ./advs
+      dockerfile: Dockerfile
+    container_name: advertisements
+    ports:
+      - "5001:5001"
+    environment:
+      PG_USER: ${PG_USER}
+      PG_PASSWORD: ${PG_PASSWORD}
+      PG_HOST: ${PG_HOST}
+      PG_PORT: ${PG_PORT}
+      PG_DB: ${PG_DB}
+      WAIT_HOSTS: ${PG_HOST}:${PG_PORT}
+    depends_on:
+      - db
+    env_file:
+      - ./.env
+    volumes:
+      - ./advs/:/advs
+    networks:
+      dev_network:
+
+  tests:
+      build:
+        context: ./advs
+        dockerfile: Dockerfile.tests
+      container_name: tests
+      environment:
+        API_URL: ${API_URL}
+        PG_USER: ${PG_USER}
+        PG_PASSWORD: ${PG_PASSWORD}
+        PG_HOST: ${PG_HOST}
+        PG_PORT: ${PG_PORT}
+        PG_DB: ${PG_DB}
+      depends_on:
+        - db
+        - advertisements
+      working_dir: /advs
+      entrypoint: pytest
+      volumes:
+        - ./advs/:/advs
+      networks:
+        dev_network:
